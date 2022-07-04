@@ -1,16 +1,15 @@
 const collegeModels = require("../Models/collegeModels");
+const isValid = function (value) {
+  if (typeof value == "undefined" || value == null) return false; //Here it Checks that Is there value is null or undefined
+  if (typeof value === "string" && value.trim().length === 0) return false; // Here it Checks that Value contain only Space
+  return true;
+};
+const isValidReqBody = function (body) {
+  //  console.log(body)
+  return Object.keys(body).length > 0; // it Checks Any Key is Present or not
+};
 
 const createCollege = async function (req, res) {
-  const isValid = function (value) {
-    if (typeof value == "undefined" || value == null) return false; //Here it Checks that Is there value is null or undefined
-    if (typeof value === "string" && value.trim().length === 0) return false; // Here it Checks that Value contain only Space
-    return true;
-  };
-  const isValidReqBody = function (body) {
-    //  console.log(body)
-    return Object.keys(body).length > 0; // it Checks Any Key is Present or not
-  };
-
   try {
     let data = req.body;
     const { name, fullName, logoLink, isDeleted } = data;
@@ -48,27 +47,28 @@ const createCollege = async function (req, res) {
         .status(400)
         .send({ status: false, msg: "link is not a valid link" });
 
-      //check logoLink and collegeName is matching or not
-        let checkLogoLink=req.body.logoLink
+    //check logoLink and collegeName is matching or not
+    let checkLogoLink = req.body.logoLink;
 
-    let checkLogo = await collegeModels.findOne({ logoLink:checkLogoLink  });
+    let checkLogo = await collegeModels.findOne({ logoLink: checkLogoLink });
 
     if (checkLogo)
-     return res
-        .status(400)
-        .send({ status: false, msg: "This Link has already taken by other college" });
-
-
-    if (/^[a-zA-Z, ]+$/.test(fullName) == false)
       return res
         .status(400)
-        .send({ status: false, message: "Fullname can not be a number" });
-
+        .send({
+          status: false,
+          msg: "This Link has already taken by other college",
+        });
     if (!isValid(fullName))
       return res.status(400).send({
         status: false,
         message: "Please Provide College Full Name To Create College",
       });
+
+    if (/^[a-zA-Z, ]+$/.test(fullName) == false)
+      return res
+        .status(400)
+        .send({ status: false, message: "Fullname can not be a number" });
 
     if (typeof isDeleted !== "boolean")
       return res.status(400).send({
@@ -82,20 +82,20 @@ const createCollege = async function (req, res) {
         msg: "You can't Delete before creation",
       });
 
-    //Unique items
+    
     const duplicatefullNames = await collegeModels.findOne({ name });
-    // console.log(duplicatefullNames)
+    
     if (duplicatefullNames)
       return res.status(400).send({ message: `${name} is Already Exists` });
     //------------------------------VALIDATION ENDS----------------------------------//
 
     const collegeData = { name, fullName, logoLink, isDeleted };
 
-    const collegeInfo = await collegeModels.create(collegeData);
+    await collegeModels.create(collegeData);
     res.status(201).send({
       status: true,
       message: "College Created Successfully",
-      data: collegeInfo,
+      data: collegeData,
     });
   } catch (error) {
     res.status(500).send({ status: false, message: error.message });

@@ -96,7 +96,7 @@ const createIntern = async function (req, res) {
     //checking college name by finding in college collection
     let CollegeID = req.body.collegeName;
     let collegeData = await collegeModel.findOne({ name: CollegeID });
-    console.log(collegeData);
+    // console.log(collegeData);
     if (!collegeData)
       return res.status(400).send({
         status: false,
